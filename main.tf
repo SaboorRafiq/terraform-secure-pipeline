@@ -13,6 +13,9 @@ provider "aws" {
 
 resource "aws_s3_bucket" "demo" {
   bucket = "saboor-demo-bucket-2026-secpipeline"
+  #checkov:skip=CKV_AWS_144:Cross-region replication out of scope for demo bucket
+  #checkov:skip=CKV2_AWS_61:Lifecycle policy deferred, not required for this exercise
+  #checkov:skip=CKV2_AWS_62:Event notifications require SNS/Lambda wiring, out of scope
 }
 
 resource "aws_s3_bucket_public_access_block" "demo" {
