@@ -8,8 +8,8 @@ A minimal AWS S3 bucket deployment, deliberately misconfigured at first, then re
 
 ## Architecture
 
-`main.tf` — S3 bucket + public access block, versioning, KMS encryption, access logging
-`.github/workflows/terraform-security.yml` — runs on every push/PR to `main`:
+- `main.tf` — S3 bucket + public access block, versioning, KMS encryption, access logging
+- `.github/workflows/terraform-security.yml` — runs on every push/PR to `main`:
   1. `terraform fmt -check`
   2. `terraform init`
   3. `terraform validate`
@@ -17,7 +17,7 @@ A minimal AWS S3 bucket deployment, deliberately misconfigured at first, then re
 
 ## Remediation history
 
-Initial commit shipped an intentionally insecure bucket: public access enabled, no encryption, no versioning, no logging. Checkov flagged 11 failed checks (5 passed / 11 Failed).
+Initial commit shipped an intentionally insecure bucket: public access enabled, no encryption, no versioning, no logging. Checkov flagged 11 failed checks (5 passed / 11 failed).
 
 Fixed:
 - Enabled all four S3 public access block settings (CKV_AWS_53, CKV_AWS_54, CKV_AWS_55, CKV_AWS_56, CKV2_AWS_6)
@@ -39,6 +39,16 @@ Full diff: [baseline commit](https://github.com/SaboorRafiq/terraform-secure-pip
 ## CI enforcement
 
 GitHub Actions also scans its own workflow file — CKV2_GHA_1 flagged the pipeline's default `write-all` permissions, fixed by scoping to `contents: read` explicitly. See [Actions runs](https://github.com/SaboorRafiq/terraform-secure-pipeline/actions) for full scan history on every commit.
+
+## Verified enforcement
+
+Tested the pipeline's blocking behavior by reintroducing a public ACL exposure on a branch and opening a PR against `main`. Branch protection requires the Checkov check to pass before merge, with bypass restricted to explicit admin override — not the default path.
+
+![Blocked PR - required check failing, merge disabled](./screenshots/regression-blocked.png)
+
+Fixed the ACL setting on the same branch, pushed, check passed on its own — no bypass used — and the PR merged normally.
+
+Full sequence: [PR #1](https://github.com/SaboorRafiq/terraform-secure-pipeline/pull/1)
 
 ## Why this exists
 
